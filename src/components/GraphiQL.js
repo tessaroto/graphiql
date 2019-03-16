@@ -9,6 +9,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { buildClientSchema, GraphQLSchema, parse, print } from 'graphql';
+import Keycloak from 'keycloak-js'
 
 import { ExecuteButton } from './ExecuteButton';
 import { ToolbarButton } from './ToolbarButton';
@@ -35,6 +36,9 @@ import {
 } from '../utility/introspectionQueries';
 
 const DEFAULT_DOC_EXPLORER_WIDTH = 350;
+
+const keycloak = Keycloak('/keycloak.json');
+
 
 /**
  * The top-level React component for GraphiQL, intended to encompass the entire
@@ -103,6 +107,8 @@ export class GraphiQL extends React.Component {
 
     // Initialize state
     this.state = {
+      keycloak: null, 
+      authenticated: false,
       schema: props.schema,
       query,
       variables,
@@ -144,6 +150,13 @@ export class GraphiQL extends React.Component {
     this.codeMirrorSizer = new CodeMirrorSizer();
 
     global.g = this;
+
+    keycloak.init({checkLoginIframe: false}).success(authenticated => {
+      this.setState({ keycloak: keycloak, authenticated: authenticated })
+    }).error(error => {
+      console.log("ops error on login")
+      console.log(error)
+    })
   }
 
   componentWillReceiveProps(nextProps) {
@@ -260,6 +273,12 @@ export class GraphiQL extends React.Component {
           onClick={this.handleToggleHistory}
           title="Show History"
           label="History"
+        />
+
+        <GraphiQL.LoginControl 
+          keycloak={this.state.keycloak} 
+          onLoginClick={this.handleLogin} 
+          onLogoutClick={this.handleLogout} 
         />
 
       </GraphiQL.Toolbar>;
@@ -496,13 +515,12 @@ export class GraphiQL extends React.Component {
         if (result.data) {
           return result;
         }
-
         // Try the stock introspection query first, falling back on the
         // sans-subscriptions query for services which do not yet support it.
         const fetch2 = observableToPromise(
           fetcher({
             query: introspectionQuerySansSubscriptions,
-          }),
+          }, this.state.keycloak),
         );
         if (!isPromise(fetch)) {
           throw new Error(
@@ -562,7 +580,7 @@ export class GraphiQL extends React.Component {
       query,
       variables: jsonVariables,
       operationName,
-    });
+    }, this.state.keycloak);
 
     if (isPromise(fetch)) {
       // If fetcher returned a Promise, then call the callback when the promise
@@ -696,6 +714,14 @@ export class GraphiQL extends React.Component {
 
     this.handleRunQuery(operationName);
   }
+
+  handleLogin = () => {
+    this.state.keycloak.login();
+  };
+
+  handleLogout = () => {
+    this.state.keycloak.logout();
+  };
 
   handlePrettifyQuery = () => {
     const editor = this.getQueryEditor();
@@ -967,6 +993,29 @@ export class GraphiQL extends React.Component {
     document.addEventListener('mouseup', onMouseUp);
   };
 }
+
+// Configure the UI by providing this Component as a child of GraphiQL.
+GraphiQL.LoginControl = function GraphiQLLoginControl(props) {
+
+  if (props.keycloak && props.keycloak.authenticated == false)
+    return (
+      <ToolbarButton
+          onClick={props.onLoginClick}
+          position="right"
+          title="Login (Shift-Ctrl-L)"
+          label="Login"
+      />
+    );
+  else
+    return (
+      <ToolbarButton
+            onClick={props.onLogoutClick}
+            position="right"
+            title="Logout (Shift-Ctrl-L)"
+            label="Logout"
+      />
+    );
+};
 
 // Configure the UI by providing this Component as a child of GraphiQL.
 GraphiQL.Logo = function GraphiQLLogo(props) {

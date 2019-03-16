@@ -63,8 +63,13 @@
 }
 
 .graphiql-container .toolbar {
-  overflow-x: visible;
-  display: flex;
+  /*overflow-x: visible;
+  display: flex;*/
+  width: 100%;
+}
+
+.graphiql-container .toolbar .wrap{
+  width: 100%; 
 }
 
 .graphiql-container .docExplorerShow,
@@ -243,6 +248,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 150px;
+}
+
+.graphiql-container .right {
+  float: right;
 }
 
 .graphiql-container .toolbar-button:active {

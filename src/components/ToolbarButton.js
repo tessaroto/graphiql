@@ -18,6 +18,7 @@ export class ToolbarButton extends React.Component {
     onClick: PropTypes.func,
     title: PropTypes.string,
     label: PropTypes.string,
+    position: PropTypes.string,
   };
 
   constructor(props) {
@@ -29,7 +30,7 @@ export class ToolbarButton extends React.Component {
     const { error } = this.state;
     return (
       <a
-        className={'toolbar-button' + (error ? ' error' : '')}
+        className={'toolbar-button' + (error ? ' error' : '') + (this.props.position == 'right' ? ' right' : '')}
         onMouseDown={preventDefault}
         onClick={this.handleClick}
         title={error ? error.message : this.props.title}>

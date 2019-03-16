@@ -106,15 +106,21 @@
       // Defines a GraphQL fetcher using the fetch API. You're not required to
       // use fetch, and could instead implement graphQLFetcher however you like,
       // as long as it returns a Promise or Observable.
-      function graphQLFetcher(graphQLParams) {
+      function graphQLFetcher(graphQLParams, keycloak) {
         // This example expects a GraphQL server at the path /graphql.
         // Change this to point wherever you host your GraphQL server.
+        var headers = {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        };
+
+        if (keycloak && keycloak.token){
+          headers["Authorization"] = 'Bearer ' + keycloak.token;
+        }
+
         return fetch('/graphql', {
           method: 'post',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
+          headers: headers,
           body: JSON.stringify(graphQLParams),
           credentials: 'include',
         }).then(function (response) {

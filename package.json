@@ -52,6 +52,7 @@
   "dependencies": {
     "codemirror": "^5.26.0",
     "codemirror-graphql": "^0.7.1",
+    "keycloak-js": "^5.0.0",
     "markdown-it": "^8.4.0"
   },
   "peerDependencies": {
