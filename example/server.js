@@ -8,14 +8,18 @@
 const path = require('path');
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
+const graphiql = require('graphiql-keycloak');
 
 const schema = require('./schema');
 
 const app = express();
-app.use(express.static(__dirname));
+//console.log(__dirname + "/node_modules/graphiql-keycloak/build")
+//app.use(express.static(__dirname + "/node_modules/graphiql-keycloak/build"));
+
+app.use("/", express.static(__dirname + "/public"));
+app.use("/", graphiql());
 app.use('/graphql', graphqlHTTP(() => ({ schema, graphiql: true })));
 
-app.use("/", express.static(path.join(__dirname, 'public')));
 
 app.listen(3001, function() {
   const port = this.address().port;
